@@ -5,6 +5,7 @@ const {
   INTERNAL_SERVER_ERROR,
 } = require("../utils/errors");
 
+// Like an item
 const likeItem = (req, res) => {
   ClothingItem.findByIdAndUpdate(
     req.params.itemId,
@@ -18,8 +19,11 @@ const likeItem = (req, res) => {
       console.error(err);
       if (err.name === "DocumentNotFoundError") {
         return res.status(NOT_FOUND).send({ message: "Item not found" });
-      } else if (err.name === "CastError") {
-        return res.status(BAD_REQUEST).send({ message: "Invalid item ID format" });
+      }
+      if (err.name === "CastError") {
+        return res
+          .status(BAD_REQUEST)
+          .send({ message: "Invalid item ID format" });
       }
       return res
         .status(INTERNAL_SERVER_ERROR)
@@ -27,6 +31,7 @@ const likeItem = (req, res) => {
     });
 };
 
+// Dislike an item
 const dislikeItem = (req, res) => {
   ClothingItem.findByIdAndUpdate(
     req.params.itemId,
@@ -40,8 +45,11 @@ const dislikeItem = (req, res) => {
       console.error(err);
       if (err.name === "DocumentNotFoundError") {
         return res.status(NOT_FOUND).send({ message: "Item not found" });
-      } else if (err.name === "CastError") {
-        return res.status(BAD_REQUEST).send({ message: "Invalid item ID format" });
+      }
+      if (err.name === "CastError") {
+        return res
+          .status(BAD_REQUEST)
+          .send({ message: "Invalid item ID format" });
       }
       return res
         .status(INTERNAL_SERVER_ERROR)
@@ -49,4 +57,71 @@ const dislikeItem = (req, res) => {
     });
 };
 
-module.exports = { likeItem, dislikeItem };
+// Get all items
+const getItems = (req, res) => {
+  ClothingItem.find({})
+    .then((items) => res.status(200).send(items))
+    .catch((err) => {
+      console.log(err.name);
+      console.error(err);
+      if (err.name === "DocumentNotFoundError") {
+        return res.status(NOT_FOUND).send({ message: "Items not found" });
+      }
+      return res
+        .status(INTERNAL_SERVER_ERROR)
+        .send({ message: "An error has occurred on the server." });
+    });
+};
+
+// Add a new item with weather validation
+const addItem = (req, res) => {
+  const { name, imageUrl, weather } = req.body;
+  const owner = req.user._id;
+
+  // Weather validation
+  const validWeather = ["hot", "warm", "cold"];
+  if (!validWeather.includes(weather)) {
+    return res
+      .status(BAD_REQUEST)
+      .send({ message: "Invalid weather value. Must be hot, warm, or cold." });
+  }
+
+  return ClothingItem.create({ name, imageUrl, weather, owner })
+    .then((item) => res.status(200).send(item))
+    .catch((err) => {
+      console.log(err.name);
+      console.error(err);
+      if (err.name === "ValidationError") {
+        return res.status(BAD_REQUEST).send({ message: err.message });
+      }
+      return res
+        .status(INTERNAL_SERVER_ERROR)
+        .send({ message: "An error has occurred on the server." });
+    });
+};
+
+// Delete an item
+const deleteItem = (req, res) => {
+  ClothingItem.findByIdAndDelete(req.params.itemId)
+    .orFail()
+    .then((item) =>
+      res.status(200).send({ message: "Item deleted successfully", item })
+    )
+    .catch((err) => {
+      console.log(err.name);
+      console.error(err);
+      if (err.name === "DocumentNotFoundError") {
+        return res.status(NOT_FOUND).send({ message: "Item not found" });
+      }
+      if (err.name === "CastError") {
+        return res
+          .status(BAD_REQUEST)
+          .send({ message: "Invalid item ID format" });
+      }
+      return res
+        .status(INTERNAL_SERVER_ERROR)
+        .send({ message: "An error has occurred on the server." });
+    });
+};
+
+module.exports = { likeItem, dislikeItem, addItem, getItems, deleteItem };
