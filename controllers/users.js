@@ -3,11 +3,12 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const {
   BAD_REQUEST,
+  UNAUTHORIZED,
   NOT_FOUND,
   INTERNAL_SERVER_ERROR,
-  CONFLICT, // Add this to your utils/errors if not present (409)
+  CONFLICT,
 } = require("../utils/errors");
-const { JWT_SECRET = "dev-secret" } = require("../utils/config"); // We'll create this file next
+const { JWT_SECRET = "dev-secret" } = require("../utils/config");
 
 const getUsers = (req, res) => {
   User.find({})
@@ -58,40 +59,54 @@ const createUser = (req, res) => {
     });
 };
 
-const getUser = (req, res) => {
-  const { userId } = req.params;
-  User.findById(userId)
-    .orFail()
-    .then((user) => res.status(200).send(user))
-    .catch((err) => {
-      console.log(err.name);
-      console.error(err);
-      if (err.name === "DocumentNotFoundError") {
-        return res.status(NOT_FOUND).send({ message: "User not found" });
-      }
-      if (err.name === "CastError") {
-        return res
-          .status(BAD_REQUEST)
-          .send({ message: "Invalid user ID format" });
-      }
-      return res
-        .status(INTERNAL_SERVER_ERROR)
-        .send({ message: "An error has occurred on the server." });
-    });
-};
+// const getUser = (req, res) => {
+//   const { userId } = req.params;
+//   User.findById(userId)
+//     .orFail()
+//     .then((user) => res.status(200).send(user))
+//     .catch((err) => {
+//       console.log(err.name);
+//       console.error(err);
+//       if (err.name === "DocumentNotFoundError") {
+//         return res.status(NOT_FOUND).send({ message: "User not found" });
+//       }
+//       if (err.name === "CastError") {
+//         return res
+//           .status(BAD_REQUEST)
+//           .send({ message: "Invalid user ID format" });
+//       }
+//       return res
+//         .status(INTERNAL_SERVER_ERROR)
+//         .send({ message: "An error has occurred on the server." });
+//     });
+// };
 
 const login = (req, res) => {
   const { email, password } = req.body;
 
-  User.findUserByCredentials(email, password)
+  if (!email || !password) {
+    return res
+      .status(BAD_REQUEST)
+      .send({ message: "Email and password are required" });
+  }
+
+  return User.findUserByCredentials(email, password)
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
         expiresIn: "7d",
       });
-      res.send({ token });
+      return res.send({ token });
     })
     .catch((err) => {
-      res.status(401).send({ message: "Incorrect email or password" });
+      if (err.message === "Incorrect email or password") {
+        return res
+          .status(UNAUTHORIZED)
+          .send({ message: "Incorrect email or password" });
+      }
+      // All other errors
+      return res
+        .status(INTERNAL_SERVER_ERROR)
+        .send({ message: "An error has occurred on the server." });
     });
 };
 
