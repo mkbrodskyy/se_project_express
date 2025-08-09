@@ -10,18 +10,6 @@ const {
 } = require("../utils/errors");
 const { JWT_SECRET = "dev-secret" } = require("../utils/config");
 
-const getUsers = (req, res) => {
-  User.find({})
-    .then((users) => res.status(200).send(users))
-    .catch((err) => {
-      console.log(err.name);
-      console.error(err);
-      return res
-        .status(INTERNAL_SERVER_ERROR)
-        .send({ message: "An error has occurred on the server." });
-    });
-};
-
 const createUser = (req, res) => {
   const { name, avatar, email, password } = req.body;
 
@@ -58,28 +46,6 @@ const createUser = (req, res) => {
         .send({ message: "An error has occurred on the server." });
     });
 };
-
-// const getUser = (req, res) => {
-//   const { userId } = req.params;
-//   User.findById(userId)
-//     .orFail()
-//     .then((user) => res.status(200).send(user))
-//     .catch((err) => {
-//       console.log(err.name);
-//       console.error(err);
-//       if (err.name === "DocumentNotFoundError") {
-//         return res.status(NOT_FOUND).send({ message: "User not found" });
-//       }
-//       if (err.name === "CastError") {
-//         return res
-//           .status(BAD_REQUEST)
-//           .send({ message: "Invalid user ID format" });
-//       }
-//       return res
-//         .status(INTERNAL_SERVER_ERROR)
-//         .send({ message: "An error has occurred on the server." });
-//     });
-// };
 
 const login = (req, res) => {
   const { email, password } = req.body;
@@ -150,7 +116,7 @@ const updateCurrentUser = (req, res) => {
 };
 
 module.exports = {
-  getUsers,
+  // getUsers,
   createUser,
   getCurrentUser,
   updateCurrentUser, // Export the new controller
