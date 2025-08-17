@@ -33,17 +33,19 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
-    select: false, // Exclude password from queries by default
+    select: false, // Exclude password from queries by default for security
   },
 });
 
+// Static method to find user by email and verify password
 userSchema.statics.findUserByCredentials = function (email, password) {
   return this.findOne({ email })
-    .select("+password")
+    .select("+password") // Include password field for verification
     .then((user) => {
       if (!user) {
         return Promise.reject(new Error("Incorrect email or password"));
       }
+      // Compare provided password with hashed password
       return bcrypt.compare(password, user.password).then((matched) => {
         if (!matched) {
           return Promise.reject(new Error("Incorrect email or password"));

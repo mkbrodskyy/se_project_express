@@ -10,9 +10,11 @@ const {
 } = require("../utils/errors");
 const { JWT_SECRET = "dev-secret" } = require("../utils/config");
 
+// Create a new user account
 const createUser = (req, res) => {
   const { name, avatar, email, password } = req.body;
 
+  // Hash password before storing
   bcrypt
     .hash(password, 10)
     .then((hash) =>
@@ -25,7 +27,7 @@ const createUser = (req, res) => {
     )
     .then((user) => {
       const userObj = user.toObject();
-      delete userObj.password; // Hide password hash in response
+      delete userObj.password; // Remove password from response for security
       res.status(201).send(userObj);
     })
     .catch((err) => {
@@ -47,6 +49,7 @@ const createUser = (req, res) => {
     });
 };
 
+// Authenticate user and return JWT token
 const login = (req, res) => {
   const { email, password } = req.body;
 
@@ -58,6 +61,7 @@ const login = (req, res) => {
 
   return User.findUserByCredentials(email, password)
     .then((user) => {
+      // Generate JWT token valid for 7 days
       const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
         expiresIn: "7d",
       });
@@ -69,13 +73,13 @@ const login = (req, res) => {
           .status(UNAUTHORIZED)
           .send({ message: "Incorrect email or password" });
       }
-      // All other errors
       return res
         .status(INTERNAL_SERVER_ERROR)
         .send({ message: "An error has occurred on the server." });
     });
 };
 
+// Get current authenticated user's profile
 const getCurrentUser = (req, res) => {
   User.findById(req.user._id)
     .orFail()
@@ -90,13 +94,14 @@ const getCurrentUser = (req, res) => {
     });
 };
 
+// Update current authenticated user's profile
 const updateCurrentUser = (req, res) => {
   const { name, avatar } = req.body;
 
   User.findByIdAndUpdate(
     req.user._id,
     { name, avatar },
-    { new: true, runValidators: true }
+    { new: true, runValidators: true } // Return updated document and run validators
   )
     .orFail()
     .then((user) => res.status(200).send(user))
@@ -116,9 +121,8 @@ const updateCurrentUser = (req, res) => {
 };
 
 module.exports = {
-  // getUsers,
   createUser,
   getCurrentUser,
-  updateCurrentUser, // Export the new controller
+  updateCurrentUser,
   login,
 };

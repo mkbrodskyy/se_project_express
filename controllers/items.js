@@ -6,11 +6,11 @@ const {
   FORBIDDEN,
 } = require("../utils/errors");
 
-// Like an item
+// Add current user to item's likes array
 const likeItem = (req, res) => {
   ClothingItem.findByIdAndUpdate(
     req.params.itemId,
-    { $addToSet: { likes: req.user._id } },
+    { $addToSet: { likes: req.user._id } }, // $addToSet prevents duplicates
     { new: true }
   )
     .orFail()
@@ -32,11 +32,11 @@ const likeItem = (req, res) => {
     });
 };
 
-// Dislike an item
+// Remove current user from item's likes array
 const dislikeItem = (req, res) => {
   ClothingItem.findByIdAndUpdate(
     req.params.itemId,
-    { $pull: { likes: req.user._id } },
+    { $pull: { likes: req.user._id } }, // $pull removes the user ID
     { new: true }
   )
     .orFail()
@@ -58,7 +58,7 @@ const dislikeItem = (req, res) => {
     });
 };
 
-// Get all items
+// Retrieve all clothing items
 const getItems = (req, res) => {
   ClothingItem.find({})
     .then((items) => res.status(200).send(items))
@@ -74,12 +74,12 @@ const getItems = (req, res) => {
     });
 };
 
-// Add a new item with weather validation
+// Create a new clothing item
 const addItem = (req, res) => {
   const { name, imageUrl, weather } = req.body;
   const owner = req.user._id;
 
-  // Weather validation
+  // Validate weather value against allowed options
   const validWeather = ["hot", "warm", "cold"];
   if (!validWeather.includes(weather)) {
     return res
@@ -101,11 +101,12 @@ const addItem = (req, res) => {
     });
 };
 
-// Delete an item
+// Delete a clothing item (only by owner)
 const deleteItem = (req, res) => {
   ClothingItem.findById(req.params.itemId)
     .orFail()
     .then((item) => {
+      // Check if current user owns the item
       if (item.owner.toString() !== req.user._id) {
         return res
           .status(FORBIDDEN)

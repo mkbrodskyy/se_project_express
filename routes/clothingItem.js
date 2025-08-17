@@ -6,14 +6,17 @@ const {
   getItems,
   deleteItem,
 } = require("../controllers/items");
-const auth = require("../middlewares/auth"); // Import auth
+const auth = require("../middlewares/auth");
 
 const router = express.Router();
 
-router.get("/", getItems); // Public route
+// Public route - anyone can view items
+router.get("/", getItems);
 
-router.use(auth); // Protect all routes below
+// Apply authentication middleware to all routes below
+router.use(auth);
 
+// Protected routes - require authentication
 router.put("/:itemId/likes", likeItem);
 router.delete("/:itemId/likes", dislikeItem);
 router.post("/", addItem);
