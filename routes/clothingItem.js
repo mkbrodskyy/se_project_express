@@ -7,6 +7,7 @@ const {
   deleteItem,
 } = require("../controllers/items");
 const auth = require("../middlewares/auth");
+const { validateCardBody, validateId } = require("../middlewares/validation");
 
 const router = express.Router();
 
@@ -17,9 +18,9 @@ router.get("/", getItems);
 router.use(auth);
 
 // Protected routes - require authentication
-router.put("/:itemId/likes", likeItem);
-router.delete("/:itemId/likes", dislikeItem);
-router.post("/", addItem);
-router.delete("/:itemId", deleteItem);
+router.put("/:itemId/likes", validateId, likeItem);
+router.delete("/:itemId/likes", validateId, dislikeItem);
+router.post("/", validateCardBody, addItem);
+router.delete("/:itemId", validateId, deleteItem);
 
 module.exports = router;
