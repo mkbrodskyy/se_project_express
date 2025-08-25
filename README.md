@@ -26,3 +26,11 @@ WTWR (What to Wear?) is a back-end server for a clothing recommendation applicat
 
 ### Testing
 Before committing your code, make sure you edit the file `sprint.txt` in the root folder. The file `sprint.txt` should contain the number of the sprint you're currently working on. For ex. 12
+
+## Deployment
+
+- **Backend domain:** https://api.frontend.twilightparadox.com
+
+## Frontend Repository
+
+- [Frontend GitHub Repository](https://github.com/mkbrodskyy/se_project_react)

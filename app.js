@@ -31,6 +31,13 @@ app.use(express.json());
 // Enable request logging
 app.use(requestLogger);
 
+// Crash test route for code review (remove after review)
+app.get('/crash-test', () => {
+  setTimeout(() => {
+    throw new Error('Server will crash now');
+  }, 0);
+});
+
 // Public authentication routes
 app.post("/signup", validateUserBody, createUser);
 app.post("/signin", validateAuthentication, login);
