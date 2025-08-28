@@ -10,8 +10,9 @@ router.use("/users", userRouter);
 router.use("/items", itemsRouter);
 
 // Handle requests to non-existent routes
-router.use((req, res) => {
-  res.status(NOT_FOUND).send({ message: "Requested resource not found" });
+const { NotFoundError } = require("../utils/not-found-error");
+router.use((req, res, next) => {
+  next(new NotFoundError());
 });
 
 module.exports = router;
