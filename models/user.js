@@ -38,7 +38,10 @@ const userSchema = new mongoose.Schema({
 });
 
 // Static method to find user by email and verify password
-userSchema.statics.findUserByCredentials = function (email, password) {
+userSchema.statics.findUserByCredentials = function findUserByCredentials(
+  email,
+  password
+) {
   return this.findOne({ email })
     .select("+password") // Include password field for verification
     .then((user) => {

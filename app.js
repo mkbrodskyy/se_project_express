@@ -1,8 +1,10 @@
 require("dotenv").config();
 const express = require("express");
+const { errors } = require("celebrate");
+const helmet = require("helmet");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const { errors } = require("celebrate");
+const rateLimiter = require("./middlewares/rateLimiter");
 const mainRouter = require("./routes/index");
 const { createUser, login } = require("./controllers/users");
 const errorHandler = require("./middlewares/error-handler");
@@ -13,12 +15,19 @@ const {
 } = require("./middlewares/validation");
 
 const app = express();
+
+// Security HTTP headers
+app.use(helmet());
+
+// Rate limiting
+app.use(rateLimiter);
 const { PORT = 3001 } = process.env;
 
 // Connect to MongoDB database
 mongoose
   .connect("mongodb://127.0.0.1:27017/wtwr_db")
   .then(() => {
+    // eslint-disable-next-line no-console
     console.log("Connected to DB");
   })
   .catch(console.error);
@@ -32,9 +41,9 @@ app.use(express.json());
 app.use(requestLogger);
 
 // Crash test route for code review (remove after review)
-app.get('/crash-test', () => {
+app.get("/crash-test", () => {
   setTimeout(() => {
-    throw new Error('Server will crash now');
+    throw new Error("Server will crash now");
   }, 0);
 });
 
@@ -55,5 +64,6 @@ app.use(errors());
 app.use(errorHandler);
 
 app.listen(PORT, "0.0.0.0", () => {
+  // eslint-disable-next-line no-console
   console.log(`Server is running on port ${PORT}`);
 });
